@@ -93,19 +93,19 @@ class PlayState extends MusicBeatState
 		camHUD.bgColor.alpha = 0;
 		FlxG.cameras.add(camHUD);
 
-		song = ChartParser.loadChart(this, "bullet-time", 1, FNF_LEGACY);
+		song = ChartParser.loadChart(this, "test", 1, FNF_LEGACY);
 
 		Conductor.boundSong.play();
 		Conductor.boundVocals.play();
 
 		// add stage
-		var stage:Stage = new Stage('stage', FOREVER);
-		add(stage);
+		//var stage:Stage = new Stage('stage', FOREVER);
+		//add(stage);
 
 		boyfriend = new Character(750, 850, PSYCH, 'bf-psych', 'BOYFRIEND', true);
 		add(boyfriend);
 
-		dad = new Character(50, 850, FOREVER, 'tricky', 'tricky', false);
+		dad = new Character(50, 850, FOREVER, 'dad', 'DADDY_DEAREST', false);
 		add(dad);
 
 		// handle UI stuff
@@ -140,7 +140,7 @@ class PlayState extends MusicBeatState
 		add(camFollowPos);
 
 		FlxG.camera.follow(camFollowPos, LOCKON, 1);
-		gameCameraZoom = stage.cameraZoom;
+		gameCameraZoom = 1;
 		FlxG.camera.zoom = gameCameraZoom;
 		FlxG.camera.focusOn(camFollow.getPosition());
 

@@ -9,7 +9,9 @@ import flixel.math.FlxPoint;
 import funkin.compat.PsychCharacter;
 import haxe.Json;
 import haxe.ds.StringMap;
+#if sys
 import sys.io.File;
+#end
 
 using StringTools;
 

@@ -1,5 +1,6 @@
 package base;
 
+import lime.utils.Assets;
 import AssetManager.AssetType;
 import flixel.FlxG;
 import flixel.FlxSprite;
@@ -8,8 +9,10 @@ import haxe.ds.StringMap;
 import hscript.Expr;
 import hscript.Interp;
 import hscript.Parser;
+#if sys
 import sys.FileSystem;
 import sys.io.File;
+#end
 
 using StringTools;
 
@@ -34,7 +37,7 @@ class ScriptHandler
 		exp = new StringMap<Dynamic>();
 
 		// Classes (Haxe)
-		exp.set("Sys", Sys);
+		#if sys exp.set("Sys", Sys); #end
 		exp.set("Std", Std);
 		exp.set("Math", Math);
 		exp.set("StringTools", StringTools);
@@ -52,7 +55,7 @@ class ScriptHandler
 	{
 		trace('Loading Module $path');
 		var modulePath:String = AssetManager.getAsset(path, MODULE, assetGroup);
-		return new ForeverModule(parser.parseString(File.getContent(modulePath), modulePath), assetGroup, extraParams);
+		return new ForeverModule(parser.parseString(#if sys File.getContent(modulePath) #else Assets.getText(modulePath) #end, modulePath), assetGroup, extraParams);
 	}
 }
 
@@ -123,7 +126,7 @@ class ForeverModule
 	{
 		var path:String = AssetManager.getPath(directory, assetGroup, type);
 		trace('attempting path $path');
-		if (FileSystem.exists(path))
+		if (#if sys FileSystem.exists(path) #else Assets.exists(path) #end)
 			return AssetManager.getAsset(directory, type, assetGroup);
 		else
 		{

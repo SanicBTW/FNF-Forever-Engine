@@ -8,7 +8,9 @@ import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.group.FlxSpriteGroup;
 import haxe.Json;
 import haxe.ds.StringMap;
+#if sys
 import sys.io.File;
+#end
 
 class Strumline extends FlxSpriteGroup
 {

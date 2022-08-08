@@ -57,7 +57,7 @@ class ChartParser
 			case FOREVER:
 
 			default:
-				var startTime:Float = Sys.time();
+				var startTime:Float = #if sys Sys.time(); #else Date.now().getTime(); #end
 				// pre 0.3 chart loader
 				var rawChart = AssetManager.getAsset(songName + difficultyMap[difficulty][0], JSON, 'songs/$songName');
 				var legacySong:LegacySong = cast Json.parse(rawChart).song;
@@ -120,7 +120,7 @@ class ChartParser
 				// psych events LOL
 				if (songType == PSYCH) {}
 
-				var endTime:Float = Sys.time();
+				var endTime:Float = #if sys Sys.time(); #else Date.now().getTime(); #end
 				trace('end chart parse time ${endTime - startTime}');
 				return returnSong;
 		}

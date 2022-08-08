@@ -1,12 +1,16 @@
 package;
 
+import lime.app.Future;
+import lime.utils.Assets;
 import flixel.FlxG;
 import flixel.graphics.FlxGraphic;
 import flixel.graphics.frames.FlxAtlasFrames;
 import openfl.display.BitmapData;
 import openfl.media.Sound;
+#if sys
 import sys.FileSystem;
 import sys.io.File;
+#end
 
 @:enum abstract AssetType(String) to String
 {
@@ -52,15 +56,15 @@ class AssetManager
 		switch (type)
 		{
 			case JSON:
-				return File.getContent(gottenPath);
+				return #if sys File.getContent(gottenPath); #else Assets.getText(gottenPath); #end
 			case IMAGE:
 				return returnGraphic(gottenPath, false);
 			case SPARROW:
 				var graphicPath = getPath(directory, group, IMAGE);
 				trace('sparrow graphic path $graphicPath');
-				var graphic:FlxGraphic = returnGraphic(graphicPath, true);
+				var graphic:FlxGraphic = returnGraphic(graphicPath, false);
 				trace('sparrow xml path $gottenPath');
-				return FlxAtlasFrames.fromSparrow(graphic, File.getContent(gottenPath));
+				return FlxAtlasFrames.fromSparrow(graphic, #if sys File.getContent(gottenPath) #else Assets.getText(gottenPath) #end);
 			default:
 				trace('returning directory $gottenPath');
 				return gottenPath;
@@ -81,7 +85,7 @@ class AssetManager
 	 */
 	public static function returnGraphic(key:String, ?textureCompression:Bool = false)
 	{
-		if (FileSystem.exists(key))
+		if (#if sys FileSystem.exists(key) #else Assets.exists(key) #end)
 		{
 			if (!keyedAssets.exists(key))
 			{
@@ -118,11 +122,20 @@ class AssetManager
 	 */
 	public static function returnSound(key:String)
 	{
-		if (FileSystem.exists(key))
+		if (#if sys FileSystem.exists(key) #else Assets.exists(key) #end)
 		{
 			if (!keyedAssets.exists(key))
 			{
+				#if html5
+				var retSound = Sound.loadFromFile('./' + key);
+				retSound.then(function(sound) {
+					return Future.withValue(sound);
+				}).onComplete(function(sound){
+					keyedAssets.set(key, sound);
+				});
+				#else
 				keyedAssets.set(key, Sound.fromFile('./' + key));
+				#end
 				trace('new sound $key');
 			}
 			trace('sound returning $key');
@@ -147,7 +160,7 @@ class AssetManager
 
 	public static function filterExtensions(directory:String, type:String)
 	{
-		if (!FileSystem.exists(directory))
+		if (! #if sys FileSystem.exists(directory) #else Assets.exists(directory) #end)
 		{
 			var extensions:Array<String> = [];
 			switch (type)
@@ -171,7 +184,7 @@ class AssetManager
 			{
 				var returnDirectory:String = '$directory$i';
 				trace('attempting directory $returnDirectory');
-				if (FileSystem.exists(returnDirectory))
+				if (#if sys FileSystem.exists(returnDirectory) #else Assets.exists(returnDirectory) #end)
 				{
 					trace('successful extension $i');
 					return returnDirectory;

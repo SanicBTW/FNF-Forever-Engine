@@ -6,6 +6,7 @@ import flixel.FlxG;
 import flixel.graphics.FlxGraphic;
 import flixel.graphics.frames.FlxAtlasFrames;
 import openfl.display.BitmapData;
+import openfl.utils.Assets as OpenFlAssets;
 import openfl.media.Sound;
 #if sys
 import sys.FileSystem;
@@ -62,7 +63,7 @@ class AssetManager
 			case SPARROW:
 				var graphicPath = getPath(directory, group, IMAGE);
 				trace('sparrow graphic path $graphicPath');
-				var graphic:FlxGraphic = returnGraphic(graphicPath, false);
+				var graphic:FlxGraphic = returnGraphic(graphicPath, true);
 				trace('sparrow xml path $gottenPath');
 				return FlxAtlasFrames.fromSparrow(graphic, #if sys File.getContent(gottenPath) #else Assets.getText(gottenPath) #end);
 			default:
@@ -89,8 +90,10 @@ class AssetManager
 		{
 			if (!keyedAssets.exists(key))
 			{
-				var bitmap = BitmapData.fromFile(key);
 				var newGraphic:FlxGraphic;
+
+				#if !html5
+				var bitmap = BitmapData.fromFile(key);
 				if (textureCompression)
 				{
 					var texture = FlxG.stage.context3D.createTexture(bitmap.width, bitmap.height, BGRA, true);
@@ -107,6 +110,9 @@ class AssetManager
 					newGraphic = FlxGraphic.fromBitmapData(bitmap, false, key, false);
 					trace('new bitmap $key, not textured');
 				}
+				#else
+				newGraphic = FlxG.bitmap.add(key, false, key);
+				#end
 				keyedAssets.set(key, newGraphic);
 			}
 			trace('graphic returning $key with gpu rendering $textureCompression');
@@ -127,12 +133,7 @@ class AssetManager
 			if (!keyedAssets.exists(key))
 			{
 				#if html5
-				var retSound = Sound.loadFromFile('./' + key);
-				retSound.then(function(sound) {
-					return Future.withValue(sound);
-				}).onComplete(function(sound){
-					keyedAssets.set(key, sound);
-				});
+				keyedAssets.set(key, OpenFlAssets.getSound(key));
 				#else
 				keyedAssets.set(key, Sound.fromFile('./' + key));
 				#end

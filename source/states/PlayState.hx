@@ -93,14 +93,16 @@ class PlayState extends MusicBeatState
 		camHUD.bgColor.alpha = 0;
 		FlxG.cameras.add(camHUD);
 
-		song = ChartParser.loadChart(this, "test", 1, FNF_LEGACY);
+		song = ChartParser.loadChart(this, "blammed", 2, FNF_LEGACY);
 
 		Conductor.boundSong.play();
 		Conductor.boundVocals.play();
 
 		// add stage
-		//var stage:Stage = new Stage('stage', FOREVER);
-		//add(stage);
+		#if !html5
+		var stage:Stage = new Stage('stage', FOREVER);
+		add(stage);
+		#end
 
 		boyfriend = new Character(750, 850, PSYCH, 'bf-psych', 'BOYFRIEND', true);
 		add(boyfriend);

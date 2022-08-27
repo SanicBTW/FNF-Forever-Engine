@@ -27,7 +27,7 @@ class Overlay extends TextField
 		autoSize = LEFT;
 		selectable = false;
 
-		defaultTextFormat = new TextFormat(AssetManager.getAsset("vcr.ttf", FONT, 'fonts'), 18, 0xFFFFFF);
+		defaultTextFormat = new TextFormat("_sans", 18, 0xFFFFFF);
 		text = "";
 
 		addEventListener(Event.ENTER_FRAME, update);

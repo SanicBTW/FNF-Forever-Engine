@@ -1,5 +1,6 @@
 package;
 
+import extra.SongSelectionState;
 import base.Controls;
 import base.ScriptHandler;
 import base.debug.Overlay;
@@ -12,8 +13,8 @@ import states.PlayState;
 
 class Main extends Sprite
 {
-	public static var initialState:Class<FlxState> = PlayState;
-	#if sys
+	public static var initialState:Class<FlxState> = SongSelectionState;
+	#if !html5
 	public static var defaultFramerate:Int = 120;
 	#else
 	public static var defaultFramerate:Int = 60;

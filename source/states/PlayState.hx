@@ -93,7 +93,7 @@ class PlayState extends MusicBeatState
 		camHUD.bgColor.alpha = 0;
 		FlxG.cameras.add(camHUD);
 
-		song = ChartParser.loadChart(this, "blammed", 2, FNF_LEGACY);
+		song = ChartParser.loadChart(this, extra.SongSelectionState.songSelected, extra.SongSelectionState.diffSelected, FNF_LEGACY);
 
 		Conductor.boundSong.play();
 		Conductor.boundVocals.play();
@@ -147,6 +147,8 @@ class PlayState extends MusicBeatState
 		FlxG.camera.focusOn(camFollow.getPosition());
 
 		FlxG.worldBounds.set(0, 0, FlxG.width, FlxG.height);
+
+		Conductor.boundSong.onComplete = finishSong;
 	}
 
 	public static var songSpeed:Float = 0;

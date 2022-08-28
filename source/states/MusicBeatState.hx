@@ -1,5 +1,7 @@
 package states;
 
+import extra.SongSelectionState;
+import flixel.FlxG;
 import base.Conductor;
 import flixel.FlxBasic;
 import flixel.addons.ui.FlxUIState;
@@ -39,7 +41,10 @@ class MusicBeatState extends ScriptableState implements MusicHandler
 
 	public function stepHit() {}
 
-	public function finishSong() {}
+	public function finishSong() 
+	{
+		FlxG.switchState(new SongSelectionState());
+	}
 }
 
 class MusicBeatSubState extends ScriptableSubState implements MusicHandler

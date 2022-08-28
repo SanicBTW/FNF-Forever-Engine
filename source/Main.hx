@@ -13,7 +13,11 @@ import states.PlayState;
 class Main extends Sprite
 {
 	public static var initialState:Class<FlxState> = PlayState;
+	#if sys
 	public static var defaultFramerate:Int = 120;
+	#else
+	public static var defaultFramerate:Int = 60;
+	#end
 
 	public static function main():Void
 		Lib.current.addChild(new Main());

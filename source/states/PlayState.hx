@@ -1,5 +1,7 @@
 package states;
 
+import flixel.FlxSubState;
+import states.substates.PauseSubstate;
 import base.ChartParser;
 import base.ChartParser;
 import base.Conductor;
@@ -47,7 +49,10 @@ class PlayState extends MusicBeatState
 	public var controlledStrumlines:Array<Strumline> = [];
 
 	public static var song(default, set):SongFormat;
-
+	public static var paused:Bool = false;
+	var bfturn:Bool = false;
+	var campointX:Float = 0;
+	var campointY:Float = 0;
 	static function set_song(value:SongFormat):SongFormat
 	{
 		// preloading song notes & stuffs
@@ -84,6 +89,9 @@ class PlayState extends MusicBeatState
 
 	override public function create()
 	{
+		AssetManager.clearUnusedMemory();
+		AssetManager.clearStoredMemory();
+
 		super.create();
 
 		camGame = new FlxCamera();
@@ -149,6 +157,7 @@ class PlayState extends MusicBeatState
 		FlxG.worldBounds.set(0, 0, FlxG.width, FlxG.height);
 
 		Conductor.boundSong.onComplete = finishSong;
+		Conductor.resyncTime();
 	}
 
 	public static var songSpeed:Float = 0;
@@ -164,10 +173,24 @@ class PlayState extends MusicBeatState
 		cameraZoomConverse(elapsed);
 
 		// tiledSprite.scrollX += elapsed / (1 / 60);
+		#if debug
 		if (FlxG.keys.pressed.UP)
 			songSpeed += 0.01;
 		else if (FlxG.keys.pressed.DOWN)
 			songSpeed -= 0.01;
+		#end
+
+		if(FlxG.keys.justPressed.ENTER)
+		{
+			persistentUpdate = false;
+			persistentDraw = false;
+			paused = true;
+			if(Conductor.boundSong != null)
+				Conductor.boundSong.pause();
+			if(Conductor.boundVocals != null)
+				Conductor.boundVocals.pause();
+			openSubState(new PauseSubstate(boyfriend.getScreenPosition().x, boyfriend.getScreenPosition().y));
+		}
 
 		super.update(elapsed);
 
@@ -185,6 +208,9 @@ class PlayState extends MusicBeatState
 						characterTo.getMidpoint().y
 						- 100
 						+ characterTo.cameraOffset.y);
+					campointX = camFollow.x;
+					campointY = camFollow.y;
+					bfturn = (cameraEvent.mustPress ? true : false);
 				}
 			});
 
@@ -476,6 +502,7 @@ class PlayState extends MusicBeatState
 
 	public function characterPlayDirection(character:Character, receptor:Receptor)
 	{
+		cameraShit('sing' + receptor.getNoteDirection().toUpperCase(), (character == dad ? true : false));
 		character.playAnim('sing' + receptor.getNoteDirection().toUpperCase(), true);
 		character.holdTimer = 0;
 	}
@@ -501,5 +528,71 @@ class PlayState extends MusicBeatState
 			}
 		}
 		//
+	}
+
+	override function openSubState(SubState:FlxSubState)
+	{
+		if (!paused)
+		{
+			if (FlxG.sound.music != null)
+			{
+				if(Conductor.boundSong != null)
+					Conductor.boundSong.pause();
+				if(Conductor.boundVocals != null)
+					Conductor.boundVocals.pause();
+			}
+
+			paused = true;
+		}
+
+		super.openSubState(SubState);
+	}
+
+	override function closeSubState()
+	{
+		if (paused)
+		{
+			if (FlxG.sound.music != null)
+			{
+				if(Conductor.boundSong != null)
+					Conductor.boundSong.play();
+				if(Conductor.boundVocals != null)
+					Conductor.boundVocals.play();
+			}
+
+			Conductor.resyncTime();
+
+			paused = false;
+		}
+
+		super.closeSubState();
+	}
+
+	var mult = 15;
+	function cameraShit(animToPlay, isDad)
+	{
+		switch(animToPlay)
+		{
+			case 'singLEFT':
+				if(((!bfturn && isDad) || (bfturn && !isDad)))
+				{
+					camFollow.x = campointX - mult;
+				}
+			case "singDOWN":
+				if(((!bfturn && isDad) || (bfturn && !isDad)))
+				{
+					camFollow.y = campointY + mult;
+				}
+			case "singUP":
+				if(((!bfturn && isDad) || (bfturn && !isDad)))
+				{
+					camFollow.y = campointY - mult;
+				}
+			case "singRIGHT":
+				if(((!bfturn && isDad) || (bfturn && !isDad)))
+				{
+					camFollow.x = campointX + mult;
+				}
+		}
 	}
 }

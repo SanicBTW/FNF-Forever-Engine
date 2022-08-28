@@ -113,6 +113,7 @@ class AssetManager
 				#else
 				newGraphic = FlxG.bitmap.add(key, false, key);
 				#end
+				localTrackedAssets.push(key);
 				keyedAssets.set(key, newGraphic);
 			}
 			trace('graphic returning $key with gpu rendering $textureCompression');
@@ -194,5 +195,68 @@ class AssetManager
 		}
 		trace('no extension needed, returning $directory');
 		return directory;
+	}
+
+	//using 0.5.2h cleaning mem feature
+	public static function excludeAsset(key:String) {
+		if (!dumpExclusions.contains(key))
+			dumpExclusions.push(key);
+	}
+
+	public static var dumpExclusions:Array<String> =
+	[
+		'assets/music/song-selection-music.ogg'
+	];
+
+	public static function clearUnusedMemory() {
+		// clear non local assets in the tracked assets list
+		for (key in keyedAssets.keys()) {
+			// if it is not currently contained within the used local assets
+			if (!localTrackedAssets.contains(key) 
+				&& !dumpExclusions.contains(key)) {
+				// get rid of it
+				var obj = keyedAssets.get(key);
+				@:privateAccess
+				if (obj != null) {
+					openfl.Assets.cache.removeBitmapData(key);
+					FlxG.bitmap._cache.remove(key);
+					//obj.destroy(); i guess this fixed the thing
+					keyedAssets.remove(key);
+				}
+			}
+		}
+		// run the garbage collector for good measure lmfao
+		#if sys
+		openfl.system.System.gc();
+		#end
+	}
+
+	public static var localTrackedAssets:Array<String> = [];
+	public static function clearStoredMemory(?cleanUnused:Bool = false) {
+		// clear anything not in the tracked assets list
+		@:privateAccess
+		for (key in FlxG.bitmap._cache.keys())
+		{
+			var obj = FlxG.bitmap._cache.get(key);
+			if (obj != null && !keyedAssets.exists(key)) {
+				openfl.Assets.cache.removeBitmapData(key);
+				FlxG.bitmap._cache.remove(key);
+				obj.destroy();
+			}
+		}
+
+		localTrackedAssets = [];
+
+		/* this will probably break everything
+		// clear all sounds that are cached
+		for (key in keyedAssets.keys()) {
+			if (!dumpExclusions.contains(key) && key != null) {
+				//trace('test: ' + dumpExclusions, key);
+				Assets.cache.clear(key);
+				keyedAssets.remove(key);
+			}
+		}	
+		// flags everything to be cleared out next unused memory clear
+		openfl.Assets.cache.clear("songs");*/
 	}
 }

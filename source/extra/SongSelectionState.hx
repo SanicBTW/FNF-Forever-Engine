@@ -37,6 +37,10 @@ class SongSelectionState extends MusicBeatState
     var enterToPlay:FlxText;
     override function create()
     {
+		AssetManager.clearUnusedMemory();
+		AssetManager.clearStoredMemory();
+
+        //its just tea time music from psych 0.5.2h
         bgMusic = new FlxSound().loadEmbedded(AssetManager.getAsset('song-selection-music', SOUND, "music"), true, false);
         bgMusic.volume = 0.7;
         FlxG.sound.list.add(bgMusic);
@@ -177,24 +181,43 @@ class SongSelectionState extends MusicBeatState
 
         if(FlxG.keys.justPressed.ENTER)
         {
-            FlxG.mouse.visible = false;
+            trace("Performing chart check");
+            var diffSuffix = "";
+            switch(diffSelected)
+            {
+                case 0:
+                    diffSuffix = "-easy";
+                case 1:
+                    diffSuffix = "";
+                case 2:
+                    diffSuffix = "-hard";
+            }
+            var fullChart = AssetManager.getPath(songSelected + diffSuffix + ".json", 'songs/$songSelected');
+            if(#if sys sys.FileSystem.exists #else Assets.exists #end(fullChart))
+            {
+                FlxG.mouse.visible = false;
 
-            weekItems.destroy();
-            songItems.destroy();
-            diffItems.destroy();
+                weekItems.destroy();
+                songItems.destroy();
+                diffItems.destroy();
+    
+                bgMusic.destroy();
+    
+                curWeekText.destroy();
+                curSongText.destroy();
+                curDiffText.destroy();
+                enterToPlay.destroy();
+    
+                #if sys
+                openfl.system.System.gc();
+                #end
 
-            bgMusic.destroy();
-
-            curWeekText.destroy();
-            curSongText.destroy();
-            curDiffText.destroy();
-            enterToPlay.destroy();
-
-            #if sys
-            openfl.system.System.gc();
-            #end
-            
-            FlxG.switchState(new PlayState());
+                FlxG.switchState(new PlayState());
+            }
+            else
+            {
+                lime.app.Application.current.window.alert("hey we couldnt find the chart, check difficulty", "Chart not found");
+            }
         }
 
         super.update(elapsed);

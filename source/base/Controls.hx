@@ -5,6 +5,11 @@ import haxe.ds.StringMap;
 import lime.app.Event;
 import openfl.events.KeyboardEvent;
 import openfl.ui.Keyboard;
+#if android
+import android.flixel.FlxButton;
+import android.flixel.FlxHitbox;
+import android.flixel.FlxVirtualPad;
+#end
 
 class Controls
 {

@@ -25,13 +25,14 @@
 	<window if="desktop" orientation="landscape" fullscreen="false" resizable="true" />
 
 	<!--Mobile-specific-->
-	<window if="mobile" orientation="landscape" fullscreen="true" width="0" height="0" />
+	<window if="mobile" orientation="landscape" fullscreen="true" width="1280" height="720" resizable="false" allow-shaders="true" require-shaders="true" />
 
 	<!-- _____________________________ Path Settings ____________________________ -->
 
 	<set name="BUILD_DIR" value="export" />
 	<source path="source" />
 	<assets path="assets" />
+	<assets path="assets/android" if="android" />
 
 	<!-- _______________________________ Libraries ______________________________ -->
 
@@ -46,13 +47,13 @@
 
 	<!-- ______________________________ Haxedefines _____________________________ -->
 
-	<haxedef name="FLX_NO_MOUSE" if="mobile" />
 	<haxedef name="FLX_NO_KEYBOARD" if="mobile" />
 	<haxedef name="FLX_NO_TOUCH" if="desktop" />
 	<haxedef name="FLX_NO_FOCUS_LOST_SCREEN" />
 
 	<haxedef name="FLX_NO_DEBUG" unless="debug" />
 	<haxedef name="NAPE_RELEASE_BUILD" unless="debug" />
+	<haxedef name="HXCPP_GC_BIG_BLOCKS" />
 
 	<!-- _________________________________ Custom _______________________________ -->
 

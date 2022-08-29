@@ -89,8 +89,8 @@ class PlayState extends MusicBeatState
 
 	override public function create()
 	{
-		AssetManager.clearUnusedMemory();
 		AssetManager.clearStoredMemory();
+		AssetManager.clearUnusedMemory();
 
 		super.create();
 
@@ -101,7 +101,7 @@ class PlayState extends MusicBeatState
 		camHUD.bgColor.alpha = 0;
 		FlxG.cameras.add(camHUD);
 
-		song = ChartParser.loadChart(this, extra.SongSelectionState.songSelected, extra.SongSelectionState.diffSelected, FNF_LEGACY);
+		song = ChartParser.loadChart(this, extra.SongSelectionState.curSong, extra.SongSelectionState.curDifficulty, FNF_LEGACY);
 
 		Conductor.boundSong.play();
 		Conductor.boundVocals.play();

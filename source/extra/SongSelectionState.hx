@@ -1,5 +1,6 @@
 package extra;
 
+import openfl.system.System;
 import flixel.text.FlxText;
 import states.PlayState;
 import flixel.util.FlxColor;
@@ -9,39 +10,42 @@ import flixel.group.FlxGroup.FlxTypedGroup;
 import openfl.Assets;
 import flixel.FlxG;
 import states.MusicBeatState;
-import extra.Item;
+import funkin.Alphabet;
 
 //this is not bound to forever engine rewrite at all, i just wanted to add this in order to let people choose what song to play
 class SongSelectionState extends MusicBeatState
 {
     var songs:Map<String, Array<String>> = new Map();
     var difficulties:Array<String> = ["Easy", "Normal", "Hard"];
-    //to iterate through the songs map
     var weeks:Array<String> = ["Tutorial", "Week 1", "Week 2", "Week 3", "Week 4", "Week 5", "Week 6"];
 
-    //sprite shit
-    var weekItems:FlxTypedGroup<Item>;
-    var songItems:FlxTypedGroup<Item>;
-    var diffItems:FlxTypedGroup<Item>;
+    var grpItems:FlxTypedGroup<Alphabet>;
 
-    //bg music to give it some life
+    var menuItems:Array<String> = [];
+
     var bgMusic:FlxSound;
+    var bg:FlxSprite;
 
-    public static var songSelected:String = "test";
-    public static var diffSelected:Int = 1;
-    var curWeekSelected:Int = 0;
+    public static var curSong:String = "test";
+    public static var curDifficulty:Int = 1;
 
-    var curWeekText:FlxText;
-    var curSongText:FlxText;
-    var curDiffText:FlxText;
-    var enterToPlay:FlxText;
+    var curWeek:Int = 0;
+    var curSelected:Int = 0;
+    var selectingWeek:Bool = true;
+    var selectingSong:Bool = false;
+
+    var diffText:FlxText;
+
+    var canAccept:Bool = true;
+
     override function create()
     {
-		AssetManager.clearUnusedMemory();
 		AssetManager.clearStoredMemory();
+		AssetManager.clearUnusedMemory();
 
-        //its just tea time music from psych 0.5.2h
-        bgMusic = new FlxSound().loadEmbedded(AssetManager.getAsset('song-selection-music', SOUND, "music"), true, false);
+        menuItems = weeks;
+
+        bgMusic = new FlxSound().loadEmbedded(AssetManager.getAsset('tea-time', SOUND, "music"), true, false);
         bgMusic.volume = 0.7;
         FlxG.sound.list.add(bgMusic);
         bgMusic.play();
@@ -88,156 +92,145 @@ class SongSelectionState extends MusicBeatState
             "thorns"
         ]);
 
-        FlxG.mouse.visible = true;
+		var bg:FlxSprite = new FlxSprite().loadGraphic(AssetManager.getAsset('menuBGBlue', IMAGE, "images"));
+		bg.scrollFactor.set();
+		bg.setGraphicSize(Std.int(bg.width * 1.175));
+		bg.updateHitbox();
+		bg.screenCenter();
+		bg.antialiasing = true;
+		add(bg);
 
-        //had to remove bg :(
+        grpItems = new FlxTypedGroup<Alphabet>();
+        add(grpItems);
 
-        weekItems = new FlxTypedGroup<Item>();
-        add(weekItems);
-
-        songItems = new FlxTypedGroup<Item>();
-        add(songItems);
-
-        diffItems = new FlxTypedGroup<Item>();
-        add(diffItems);
-
-        var curItemPos = 270;
-        for(i in 0...weeks.length)
+        for(i in 0...menuItems.length)
         {
-            //more spacing
-            weekItems.add(new Item(weeks[i], 460, curItemPos - 55, i));
-            curItemPos -= 55;
+            var weekText:Alphabet = new Alphabet(0, (70 * i) + 30, menuItems[i].toString(), true, false);
+            weekText.isMenuItem = true;
+            weekText.targetY = i;
+            grpItems.add(weekText);
         }
 
-        var curItemPos = 270;
-        for(i in 0...difficulties.length)
-        {
-            diffItems.add(new Item(difficulties[i], -220, curItemPos - 55, i));
-            curItemPos -= 55;
-        }
+		diffText = new FlxText(FlxG.width * 0.6, 5, 0, "", 32);
+        diffText.setFormat(AssetManager.getAsset("vcr", FONT, "fonts"), 32, FlxColor.WHITE, RIGHT);
+		add(diffText);
 
-        curWeekText = new FlxText(0, 0, 0, 'Cur week: ?\n');
-		curWeekText.setFormat(AssetManager.getAsset('vcr', FONT, 'fonts'), 18, FlxColor.BLACK);
-		curWeekText.setBorderStyle(OUTLINE, FlxColor.WHITE, 2);
-		curWeekText.setPosition((FlxG.width - (curWeekText.width + 5)) - 200, 5);
-		curWeekText.antialiasing = true;
-		add(curWeekText);
-
-        curSongText = new FlxText(0, 0, 0, 'Cur song: ?\n');
-		curSongText.setFormat(AssetManager.getAsset('vcr', FONT, 'fonts'), 18, FlxColor.BLACK);
-		curSongText.setBorderStyle(OUTLINE, FlxColor.WHITE, 2);
-		curSongText.setPosition((FlxG.width - (curSongText.width + 5)) - 200, 30);
-		curSongText.antialiasing = true;
-		add(curSongText);
-
-        curDiffText = new FlxText(0, 0, 0, 'Cur diff: ?\n');
-		curDiffText.setFormat(AssetManager.getAsset('vcr', FONT, 'fonts'), 18, FlxColor.BLACK);
-		curDiffText.setBorderStyle(OUTLINE, FlxColor.WHITE, 2);
-		curDiffText.setPosition((FlxG.width - (curDiffText.width + 5)) - 200, 60);
-		curDiffText.antialiasing = true;
-		add(curDiffText);
-
-        enterToPlay = new FlxText(0, 0, 0, "Press ENTER to play the song", 18);
-        enterToPlay.setFormat(AssetManager.getAsset("vcr", FONT, "fonts"), 18, FlxColor.BLACK);
-        enterToPlay.screenCenter();
-        enterToPlay.y = FlxG.height - 50;
-        enterToPlay.antialiasing = true;
-        enterToPlay.setBorderStyle(OUTLINE, FlxColor.WHITE, 2);
-        add(enterToPlay);
+        changeSelection();
+        changeDiff();
 
         super.create();
     }
 
     override function update(elapsed:Float)
     {
-        //couldnt do funky overlapping and selection color
-        weekItems.forEach(function(weekItem:Item)
-        {
-            if(FlxG.mouse.justPressed && FlxG.mouse.overlaps(weekItem))
-            {
-                curWeekSelected = weekItem.ID;
-                curWeekText.text = "Cur week: " + curWeekSelected;
-                generateSongs();
-            }
-        });
+        if(FlxG.keys.justPressed.UP){ changeSelection(-1); }
+        if(FlxG.keys.justPressed.DOWN){ changeSelection(1); }
 
-        diffItems.forEach(function(diffItem:Item)
-        {
-            if(FlxG.mouse.justPressed && FlxG.mouse.overlaps(diffItem))
-            {
-                diffSelected = diffItem.ID;
-                curDiffText.text = "Cur diff: " + difficulties[diffSelected];
-            }
-        });
-
-        songItems.forEach(function(song:Item)
-        {
-            if(FlxG.mouse.justPressed && FlxG.mouse.overlaps(song))
-            {
-                songSelected = song.disptext.text;
-                curSongText.text = "Cur song: " + songSelected;
-            }
-        });
+        if(FlxG.keys.justPressed.LEFT){ changeDiff(-1); }
+        if(FlxG.keys.justPressed.RIGHT){ changeDiff(1); }
 
         if(FlxG.keys.justPressed.ENTER)
         {
-            trace("Performing chart check");
-            var diffSuffix = "";
-            switch(diffSelected)
+            if(selectingWeek)
             {
-                case 0:
-                    diffSuffix = "-easy";
-                case 1:
-                    diffSuffix = "";
-                case 2:
-                    diffSuffix = "-hard";
-            }
-            var fullChart = AssetManager.getPath(songSelected + diffSuffix + ".json", 'songs/$songSelected');
-            if(#if sys sys.FileSystem.exists #else Assets.exists #end(fullChart))
-            {
-                FlxG.mouse.visible = false;
-
-                weekItems.destroy();
-                songItems.destroy();
-                diffItems.destroy();
-    
-                bgMusic.destroy();
-    
-                curWeekText.destroy();
-                curSongText.destroy();
-                curDiffText.destroy();
-                enterToPlay.destroy();
-    
-                #if sys
-                openfl.system.System.gc();
-                #end
-
-                FlxG.switchState(new PlayState());
+                curWeek = curSelected;
+                menuItems = songs.get(weeks[curWeek]);
+                selectingWeek = false;
+                selectingSong = true;
+                regenMenu();
             }
             else
             {
-                lime.app.Application.current.window.alert("hey we couldnt find the chart, check difficulty", "Chart not found");
+                trace("Performing chart check");
+                curSong = songs.get(weeks[curWeek])[curSelected];
+                var diffSuffix = "";
+                switch(curDifficulty)
+                {
+                    case 0:
+                        diffSuffix = "-easy";
+                    case 1:
+                        diffSuffix = "";
+                    case 2:
+                        diffSuffix = "-hard";
+                }
+                var fullChart = AssetManager.getPath(curSong + diffSuffix + ".json", 'songs/$curSong');
+                if(#if sys sys.FileSystem.exists #else Assets.exists #end(fullChart))
+                {
+                    FlxG.mouse.visible = false;
+    
+                    bgMusic.destroy();
+        
+                    System.gc();
+    
+                    FlxG.switchState(new PlayState());
+                }
+                else
+                {
+                    lime.app.Application.current.window.alert("hey we couldnt find the chart, check difficulty", "Chart not found");
+                }
             }
+        }
+
+        if(FlxG.keys.justPressed.ESCAPE && selectingSong)
+        {
+            menuItems = weeks;
+            selectingWeek = true;
+            selectingSong = false;
+            regenMenu();
         }
 
         super.update(elapsed);
     }
 
-    function generateSongs()
+    function changeSelection(change:Int = 0)
     {
-        var curItemPos = 270;
-        if(songItems.length > 0)
+        curSelected += change;
+
+        if(curSelected < 0)
+            curSelected = grpItems.length - 1;
+        if(curSelected >= grpItems.length)
+            curSelected = 0;
+
+        var what:Int = 0;
+
+        //idk if i should use for item in grpsongs or the same method as always
+        grpItems.forEach(function(item:Alphabet)
         {
-            songItems.clear();
-        }
-        var weekSongs = songs.get(weeks[curWeekSelected]);
-        for(i in 0...weekSongs.length)
+            item.targetY = what - curSelected;
+            what++;
+
+            item.alpha = 0.5;
+
+            if(item.targetY == 0){ item.alpha = 1; }
+        });
+    }
+
+    function regenMenu()
+    {
+        canAccept = false;
+        grpItems.clear();
+
+        for(i in 0...menuItems.length)
         {
-            songItems.add(new Item(weekSongs[i], 120, curItemPos - 55, i));
-            curItemPos -= 55;
+            var weekText:Alphabet = new Alphabet(0, (70 * i) + 30, menuItems[i].toString(), true, false);
+            weekText.isMenuItem = true;
+            weekText.targetY = i;
+            grpItems.add(weekText);
         }
-        #if sys
-        openfl.system.System.gc();
-        #end
+
+        curSelected = 0;
+        changeSelection();
+    }
+
+    function changeDiff(change:Int = 0)
+    {
+        curDifficulty += change;
+        
+        if(curDifficulty < 0)
+            curDifficulty = difficulties.length - 1;
+        if(curDifficulty >= difficulties.length)
+            curDifficulty = 0;
+
+        diffText.text = "< " + difficulties[curDifficulty] + " >";
     }
 }

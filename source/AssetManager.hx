@@ -205,7 +205,7 @@ class AssetManager
 
 	public static var dumpExclusions:Array<String> =
 	[
-		'assets/music/song-selection-music.ogg'
+		'assets/music/tea-time.ogg'
 	];
 
 	public static function clearUnusedMemory() {

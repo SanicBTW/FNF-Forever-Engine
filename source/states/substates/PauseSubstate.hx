@@ -8,14 +8,14 @@ import flixel.FlxSprite;
 import flixel.FlxG;
 import flixel.system.FlxSound;
 import flixel.group.FlxGroup.FlxTypedGroup;
-import extra.Item;
 import states.MusicBeatState;
 import base.Conductor;
+import funkin.Alphabet;
 
 //heavily inspired by my psych 0.3.2h repo pause substate
 class PauseSubstate extends MusicBeatSubState 
 {
-    var grpMenuShit:FlxTypedGroup<Item>;
+    var grpMenuShit:FlxTypedGroup<Alphabet>;
 
     var menuItems:Array<String> = ['Resume', 'Exit to song selection'];
     var curSelected:Int = 0;
@@ -27,7 +27,7 @@ class PauseSubstate extends MusicBeatSubState
         super();
 
         //its just tea time from psych 0.5.2h
-        pauseMusic = new FlxSound().loadEmbedded(AssetManager.getAsset('song-selection-music', SOUND, "music"), true, false);
+        pauseMusic = new FlxSound().loadEmbedded(AssetManager.getAsset('tea-time', SOUND, "music"), true, false);
         pauseMusic.volume = 0;
         pauseMusic.play(false, FlxG.random.int(0, Std.int(pauseMusic.length / 2)));
 
@@ -40,14 +40,15 @@ class PauseSubstate extends MusicBeatSubState
 
         FlxTween.tween(bg, {alpha: 0.6}, 0.4, {ease: FlxEase.quartInOut});
 
-        grpMenuShit = new FlxTypedGroup<Item>();
+        grpMenuShit = new FlxTypedGroup<Alphabet>();
         add(grpMenuShit);
 
-        var curPos = 270;
         for(i in 0...menuItems.length)
         {
-            grpMenuShit.add(new Item(menuItems[i], 0, curPos - 50, i));
-            curPos -= 50;
+            var pauseItem:Alphabet = new Alphabet(0, (70 * i) + 30, menuItems[i].toString(), true, false);
+            pauseItem.isMenuItem = true;
+            pauseItem.targetY = i;
+            grpMenuShit.add(pauseItem);
         }
 
         changeSelection();
@@ -101,14 +102,16 @@ class PauseSubstate extends MusicBeatSubState
         if(curSelected >= menuItems.length)
             curSelected = 0;
 
-        grpMenuShit.forEach(function(menuItem:Item)
-        {
-            menuItem.bg.color = FlxColor.WHITE;
+        var what:Int = 0;
 
-            if(menuItem.ID == curSelected)
-            {
-                menuItem.bg.color = FlxColor.GRAY;
-            }
+        grpMenuShit.forEach(function(menuItem:Alphabet)
+        {
+            menuItem.targetY = what - curSelected;
+            what++;
+
+            menuItem.alpha = 0.5;
+
+            if(menuItem.targetY == 0){ menuItem.alpha = 1; }
         });
     }
 }

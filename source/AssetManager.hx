@@ -259,4 +259,10 @@ class AssetManager
 		// flags everything to be cleared out next unused memory clear
 		openfl.Assets.cache.clear("songs");*/
 	}
+
+	public static function getAlphabet() 
+	{
+		//dumb ass graphics not working properly, just gonna throw the image and sparrow hardcoded
+		return FlxAtlasFrames.fromSparrow('assets/images/alphabet.png', #if sys File.getContent #else Assets.getText #end ('assets/images/alphabet.xml'));
+	}
 }

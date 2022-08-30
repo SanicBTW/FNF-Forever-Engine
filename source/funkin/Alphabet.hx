@@ -375,7 +375,7 @@ class AlphaCharacter extends FlxSprite
 	public function new(x:Float, y:Float, textSize:Float)
 	{
 		super(x, y);
-        var tex = AssetManager.getAsset('alphabet', SPARROW, "images");
+        var tex = AssetManager.getAlphabet();
 		frames = tex;
 
 		setGraphicSize(Std.int(width * textSize));
